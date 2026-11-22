@@ -10,17 +10,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-/** Draws text using the glyphs from the pixel font sheet (resources/font.png). */
 public class PixelFont {
 
     private static final String SHEET_NAME = "font.png";
     private static final int CELL_SIZE = 32;
     private static final int SHEET_COLS = 9;
-
-    /**
-     * Characters in the exact order they appear in font.png (left to right, top to bottom).
-     * Every row below matches one 9-column row of the sheet.
-     */
     private static final String CHAR_ORDER =
             "abcdefghi" +
                     "jklmnopqr" +
@@ -33,10 +27,8 @@ public class PixelFont {
     private final int cellW;
     private final int cellH;
     private final Map<Character, BufferedImage> glyphs = new HashMap<>();
-    // color (as ARGB int) -> glyph char -> tinted image, so each glyph is tinted only once
     private final Map<Integer, Map<Character, BufferedImage>> tintCache = new HashMap<>();
 
-    /** One shared instance for the whole app. */
     public static synchronized PixelFont getInstance() {
         if (instance == null) {
             instance = new PixelFont(SHEET_NAME, CELL_SIZE, CELL_SIZE);
@@ -49,13 +41,9 @@ public class PixelFont {
         this.cellH = cellH;
         loadFontSheet(imagePath);
     }
-
-    /** True if the sheet has a glyph for this character (case-insensitive). */
     public boolean supports(char c) {
         return glyphs.containsKey(Character.toLowerCase(c));
     }
-
-    // ---------------------------------------------------------------- loading
 
     private void loadFontSheet(String path) {
         try {
@@ -82,8 +70,6 @@ public class PixelFont {
         throw new IOException("Not found: resources/" + fileName);
     }
 
-    // ---------------------------------------------------------------- glyphs
-
     /** Returns the glyph for c in the given color, or null if the font does not have it. */
     private BufferedImage glyphFor(char c, Color color) {
         BufferedImage base = glyphs.get(c);
@@ -108,13 +94,10 @@ public class PixelFont {
         return tinted;
     }
 
-    // ---------------------------------------------------------------- measuring
-
     private int defaultWordSpacing(int scale, int spacing) {
         return (cellW / 2) * scale + spacing;
     }
 
-    /** How far the cursor moves after c. Unknown characters are skipped, in both measuring and drawing. */
     private int advance(char c, int scale, int spacing, int wordSpacing) {
         if (c == ' ') return wordSpacing;
         if (!glyphs.containsKey(c)) return 0;
@@ -136,11 +119,10 @@ public class PixelFont {
             if (c != ' ' && step != 0) lastWasGlyph = true;
             else if (c == ' ') lastWasGlyph = false;
         }
-        // the spacing after the last glyph is not part of the visible text
+
         return Math.max(0, lastWasGlyph ? total - spacing : total);
     }
 
-    // ---------------------------------------------------------------- drawing
 
     public void drawText(Graphics2D g2d, String text, int x, int y, int scale, int spacing, Color color) {
         drawText(g2d, text, x, y, scale, spacing, defaultWordSpacing(scale, spacing), color);
