@@ -5,6 +5,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+
+import controller.GameController;
 import model.Player;
 import model.PlayerColor;
 
@@ -155,7 +157,9 @@ public class MenuView {
                         PlayerColor.fromString(data.colorName)
                 ));
             }
-            new GameView(setupDataList).displayWindow();
+            GameView gameView = new GameView(setupDataList);
+            GameController controller = new GameController(domainPlayers, gameView);
+            controller.startGame();
         }).displayWindow();
     }
 
