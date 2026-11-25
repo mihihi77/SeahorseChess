@@ -1,41 +1,28 @@
+
+import dao.DatabaseConnection;
+
 import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.SQLException;
 
 public class DatabaseTest {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
 
-        String url = "jdbc:mysql://localhost:3306/seahorse_chess";
-        String user = "root";
-        String password = "root";
+        String sql = "SELECT COUNT(*) FROM PLAYER";
 
-        try {
-            Connection connection =
-                    DriverManager.getConnection(url, user, password);
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()
+        ) {
 
-            System.out.println("Database connected!");
+            System.out.println("Connected to Oracle successfully!");
 
-            Statement statement = connection.createStatement();
-
-            ResultSet result = statement.executeQuery(
-                    "SELECT DATABASE()"
-            );
-
-            if (result.next()) {
-                System.out.println(
-                        "Connected to: " + result.getString(1)
-                );
+            if (rs.next()) {
+                System.out.println("Total players: " + rs.getInt(1));
             }
-
-            result.close();
-            statement.close();
-            connection.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }
-

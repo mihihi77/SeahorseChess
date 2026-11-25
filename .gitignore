@@ -1,3 +1,4 @@
+
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -36,4 +37,13 @@ build/
 .vscode/
 
 ### Mac OS ###
-.DS_Store*.aseprite
+.DS_Store
+
+### Design files ###
+*.aseprite
+
+### Local database configuration ###
+.env
+.env.local
+db.properties
+database.properties
