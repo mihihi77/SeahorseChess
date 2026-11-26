@@ -1,5 +1,7 @@
 package controller;
 
+import dao.GameDAO;
+import dao.PlayerDAO;
 import model.Game;
 import model.GameRules;
 import model.Move;
@@ -7,7 +9,10 @@ import model.Piece;
 import model.Player;
 import view.GameView;
 
-import java.util.*;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class GameController {
@@ -20,11 +25,21 @@ public class GameController {
 
     private final Game game;
     private final GameView view;
+    private final GameDAO gameDAO;
+    private final PlayerDAO playerDAO;
     private TurnPhase phase;
 
+    /** Used by unit tests (no database required). */
     public GameController(List<Player> players, GameView view) {
+        this(players, view, null, null);
+    }
+
+    /** Used in production with Oracle DB persistence. */
+    public GameController(List<Player> players, GameView view, GameDAO gameDAO, PlayerDAO playerDAO) {
         this.game = new Game(players);
         this.view = view;
+        this.gameDAO = gameDAO;
+        this.playerDAO = playerDAO;
         this.phase = TurnPhase.WAITING_FOR_ROLL;
         if (this.view != null) {
             this.view.setController(this);
@@ -32,6 +47,8 @@ public class GameController {
     }
 
     public void startGame() {
+        initDatabaseRecords();
+
         game.start();
         phase = TurnPhase.WAITING_FOR_ROLL;
         if (view != null) {
@@ -39,6 +56,28 @@ public class GameController {
             view.updateBoard(game.getPlayers());
             view.showTurn(game.getCurrentPlayer());
             view.showMessage(game.getCurrentPlayer().getName() + "'s turn - roll the die!");
+        }
+    }
+
+    private void initDatabaseRecords() {
+        if (playerDAO == null || gameDAO == null) return;
+
+        try {
+            for (Player player : game.getPlayers()) {
+                Player existing = playerDAO.findByUsername(player.getUsername());
+                if (existing == null) {
+                    playerDAO.addPlayer(player.getUsername(), player.getName());
+                    existing = playerDAO.findByUsername(player.getUsername());
+                }
+                if (existing != null) {
+                    player.setPlayerId(existing.getPlayerId());
+                }
+            }
+
+            int gameId = gameDAO.createGame(game.getPlayers());
+            game.setGameId(gameId);
+        } catch (SQLException e) {
+            System.err.println("DB init failed (running offline): " + e.getMessage());
         }
     }
 
@@ -136,6 +175,7 @@ public class GameController {
 
         if (game.getStatus() == Game.Status.FINISHED) {
             phase = TurnPhase.GAME_OVER;
+            saveCompletedGame();
             if (view != null) {
                 List<Player> ranked = game.getPlayers().stream()
                         .sorted(Comparator.comparingInt(Player::getFinishingRank))
@@ -164,7 +204,24 @@ public class GameController {
         return true;
     }
 
+    private void saveCompletedGame() {
+        if (gameDAO == null || game.getGameId() <= 0) return;
+
+        try {
+            gameDAO.completeGame(game.getGameId(), game.getPlayers());
+        } catch (SQLException e) {
+            System.err.println("Failed to save completed game: " + e.getMessage());
+        }
+    }
+
     public void exitGame() {
+        if (game.getStatus() == Game.Status.IN_PROGRESS && gameDAO != null && game.getGameId() > 0) {
+            try {
+                gameDAO.abandonGame(game.getGameId());
+            } catch (SQLException e) {
+                System.err.println("Failed to mark game as abandoned: " + e.getMessage());
+            }
+        }
         phase = TurnPhase.GAME_OVER;
         if (view != null) {
             view.closeWindow();

@@ -3,6 +3,7 @@ package view;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Locale;
 
 /** A single-line text field that renders its text with the pixel font. */
 public class PixelTextField extends JPanel {
@@ -88,7 +89,7 @@ public class PixelTextField extends JPanel {
 
     private void handleTyped(char c) {
         if (c == '\b') {
-            if (text.length() > 0) text.deleteCharAt(text.length() - 1);
+            if (!text.isEmpty()) text.deleteCharAt(text.length() - 1);
         } else if (text.length() < maxLength && isAllowed(c)) {
             text.append(c);
         }
@@ -111,7 +112,7 @@ public class PixelTextField extends JPanel {
         g2d.setStroke(new BasicStroke(3));
         g2d.drawRect(BORDER_INSET, BORDER_INSET, getWidth() - 2 * BORDER_INSET, getHeight() - 2 * BORDER_INSET);
 
-        boolean showPlaceholder = text.length() == 0 && !focused;
+        boolean showPlaceholder = text.isEmpty() && !focused;
         String display = showPlaceholder ? PLACEHOLDER : text.toString();
         Color textColor = showPlaceholder ? Color.GRAY : Color.WHITE;
 

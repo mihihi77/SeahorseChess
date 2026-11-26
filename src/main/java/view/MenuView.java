@@ -158,7 +158,8 @@ public class MenuView {
                 ));
             }
             GameView gameView = new GameView(setupDataList);
-            controller.GameController controller = new GameController(domainPlayers, gameView);
+            controller.GameController controller = new GameController(
+                    domainPlayers, gameView, new dao.GameDAO(), new dao.PlayerDAO());
             controller.startGame();
         }).displayWindow();
     }
