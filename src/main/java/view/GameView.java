@@ -13,6 +13,13 @@ import java.util.Map;
 
 public class GameView {
 
+    private controller.GameController controller;
+    private List<model.Player> domainPlayers = new ArrayList<>();
+    private List<model.Piece> highlightedPieces = new ArrayList<>();
+    private model.Player activePlayer;
+    private int lastDiceValue = 0;
+    private String statusMessage = "";
+
     private static final String BOARD_IMAGE_PATH = "resources/board.png";
     private static final int SLOT_MARGIN_X = 24;
     private static final int SLOT_MARGIN_Y = 20;
@@ -67,6 +74,40 @@ public class GameView {
         }
     }
 
+    public void setController(controller.GameController controller) {
+        this.controller = controller;
+    }
+
+    public void updateBoard(List<model.Player> players) {
+        this.domainPlayers = players;
+        if (frame != null) frame.repaint();
+    }
+
+    public void showDice(int diceValue) {
+        this.lastDiceValue = diceValue;
+        if (frame != null) frame.repaint();
+    }
+
+    public void highlightValidPieces(List<model.Piece> validPieces) {
+        this.highlightedPieces = validPieces;
+        if (frame != null) frame.repaint();
+    }
+
+    public void showTurn(model.Player currentPlayer) {
+        this.activePlayer = currentPlayer;
+        if (frame != null) frame.repaint();
+    }
+
+    public void showMessage(String message) {
+        this.statusMessage = message;
+        if (frame != null) frame.repaint();
+    }
+
+    public void showGameOver(List<model.Player> rankedPlayers) {
+        this.statusMessage = "Game Over!";
+        if (frame != null) frame.repaint();
+    }
+
     public void displayWindow() {
         frame = Theme.createFrame("LUDO Chess - Game");
 
@@ -92,6 +133,10 @@ public class GameView {
         gamePanel.setPreferredSize(new Dimension(Theme.WIN_W, Theme.WIN_H));
 
         Theme.showFrame(frame, gamePanel);
+    }
+
+    public void closeWindow() {
+        if (frame != null) frame.dispose();
     }
 
     private Map<String, GameSetupView.PlayerSetupData> playersByColor() {
