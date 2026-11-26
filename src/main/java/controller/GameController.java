@@ -76,6 +76,7 @@ public class GameController {
 
             int gameId = gameDAO.createGame(game.getPlayers());
             game.setGameId(gameId);
+            System.out.println("[DB] Game created: game_id=" + gameId);
         } catch (SQLException e) {
             System.err.println("DB init failed (running offline): " + e.getMessage());
         }
@@ -209,6 +210,7 @@ public class GameController {
 
         try {
             gameDAO.completeGame(game.getGameId(), game.getPlayers());
+            System.out.println("[DB] Game completed and ranks saved: game_id=" + game.getGameId());
         } catch (SQLException e) {
             System.err.println("Failed to save completed game: " + e.getMessage());
         }
@@ -218,6 +220,7 @@ public class GameController {
         if (game.getStatus() == Game.Status.IN_PROGRESS && gameDAO != null && game.getGameId() > 0) {
             try {
                 gameDAO.abandonGame(game.getGameId());
+                System.out.println("[DB] Game marked ABANDONED: game_id=" + game.getGameId());
             } catch (SQLException e) {
                 System.err.println("Failed to mark game as abandoned: " + e.getMessage());
             }
