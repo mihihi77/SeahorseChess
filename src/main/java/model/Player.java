@@ -4,10 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Player {
+public class Player extends GameEntity {
     public static final int PIECES_PER_PLAYER = 4;
 
-    private int playerId;
     private String username;
     private String name;
     private PlayerColor color;
@@ -16,9 +15,11 @@ public class Player {
     private final List<Piece> pieces = new ArrayList<>();
 
     public Player() {
+        super();
     }
 
     public Player(int turnOrder, String name, PlayerColor color) {
+        super();
         this.turnOrder = turnOrder;
         this.name = name;
         this.username = name.toLowerCase();
@@ -43,8 +44,13 @@ public class Player {
         return true;
     }
 
-    public int getPlayerId() { return playerId; }
-    public void setPlayerId(int playerId) { this.playerId = playerId; }
+    public int getPlayerId() { return getId(); }
+    public void setPlayerId(int playerId) { setId(playerId); }
+
+    @Override
+    public String getEntityType() {
+        return "Player";
+    }
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }

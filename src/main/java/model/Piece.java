@@ -1,6 +1,6 @@
 package model;
 
-public class Piece {
+public class Piece extends GameEntity {
     public enum State {
         IN_BASE,
         ON_BOARD,
@@ -9,7 +9,6 @@ public class Piece {
 
     public static final int BASE_POSITION = -1;
 
-    private int pieceId;
     private final int pieceNumber; // 1..4 per player
     private final PlayerColor color;
     private State state;
@@ -17,6 +16,7 @@ public class Piece {
     private int stepsTaken;
 
     public Piece(int pieceNumber, PlayerColor color) {
+        super();
         this.pieceNumber = pieceNumber;
         this.color = color;
         resetToBase();
@@ -49,8 +49,14 @@ public class Piece {
     public boolean isOnBoard() { return state == State.ON_BOARD; }
     public boolean isFinished() { return state == State.FINISHED; }
 
-    public int getPieceId() { return pieceId; }
-    public void setPieceId(int pieceId) { this.pieceId = pieceId; }
+    public int getPieceId() { return getId(); }
+    public void setPieceId(int pieceId) { setId(pieceId); }
+
+    @Override
+    public String getEntityType() {
+        return "Piece";
+    }
+
     public int getPieceNumber() { return pieceNumber; }
     public PlayerColor getColor() { return color; }
     public State getState() { return state; }

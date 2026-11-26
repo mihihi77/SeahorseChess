@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Game {
+public class Game extends GameEntity {
 
     public enum Status {
         NOT_STARTED,
@@ -12,7 +12,6 @@ public class Game {
         FINISHED
     }
 
-    private int gameId;
     private final List<Player> players;
     private final Die die;
     private final GameRules rules;
@@ -25,6 +24,7 @@ public class Game {
     private Status status;
 
     public Game(List<Player> players) {
+        super();
         this.players = new ArrayList<>(players);
         this.die = new Die();
         this.rules = new GameRules();
@@ -102,8 +102,14 @@ public class Game {
         moveHistory.add(move);
     }
 
-    public int getGameId() { return gameId; }
-    public void setGameId(int gameId) { this.gameId = gameId; }
+    public int getGameId() { return getId(); }
+    public void setGameId(int gameId) { setId(gameId); }
+
+    @Override
+    public String getEntityType() {
+        return "Game";
+    }
+
     public List<Player> getPlayers() { return Collections.unmodifiableList(players); }
     public Die getDie() { return die; }
     public GameRules getRules() { return rules; }
