@@ -2,6 +2,7 @@ package controller;
 
 import dao.GameDAO;
 import dao.PlayerDAO;
+import dao.MoveDAO;
 import model.Game;
 import model.GameRules;
 import model.Move;
@@ -27,19 +28,25 @@ public class GameController {
     private final GameView view;
     private final GameDAO gameDAO;
     private final PlayerDAO playerDAO;
+    private final MoveDAO moveDAO;
     private TurnPhase phase;
 
     /** Used by unit tests (no database required). */
     public GameController(List<Player> players, GameView view) {
-        this(players, view, null, null);
+        this(players, view, null, null, null);
+    }
+
+    public GameController(List<Player> players, GameView view, GameDAO gameDAO, PlayerDAO playerDAO) {
+        this(players, view, gameDAO, playerDAO, new MoveDAO());
     }
 
     /** Used in production with Oracle DB persistence. */
-    public GameController(List<Player> players, GameView view, GameDAO gameDAO, PlayerDAO playerDAO) {
+    public GameController(List<Player> players, GameView view, GameDAO gameDAO, PlayerDAO playerDAO, MoveDAO moveDAO) {
         this.game = new Game(players);
         this.view = view;
         this.gameDAO = gameDAO;
         this.playerDAO = playerDAO;
+        this.moveDAO = moveDAO;
         this.phase = TurnPhase.WAITING_FOR_ROLL;
         if (this.view != null) {
             this.view.setController(this);
@@ -170,6 +177,16 @@ public class GameController {
                 didCapture
         );
         game.recordMove(move);
+
+        // Persist the move
+        if (moveDAO != null && game.getGameId() > 0 && current.getPlayerId() > 0) {
+            try {
+                int moveId = moveDAO.addMove(move);
+                System.out.println("[DB] Move #" + move.getMoveNumber() + " saved: move_id=" + moveId);
+            } catch (SQLException e) {
+                System.err.println("Failed to save move: " + e.getMessage());
+            }
+        }
 
         // Check if player finished all 4 pieces
         Player finishedPlayer = game.checkWinner();
