@@ -1,6 +1,7 @@
 package dao;
 
 import model.Move;
+import model.Piece;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,35 +15,54 @@ import java.util.List;
 public class MoveDAO {
 
     public int addMove(Move move) throws SQLException {
+
         validateMove(move);
 
         String sql = "INSERT INTO GAME_MOVE "
                 + "(game_id, move_number, player_id, dice_value, "
-                + "piece_number, from_position, to_position, captured_opponent) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                + "piece_number, from_position, to_position, "
+                + "captured_opponent, action_type) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (
                 Connection conn = DatabaseConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql, new String[]{"MOVE_ID"})
-        ) {
+                PreparedStatement stmt = conn.prepareStatement(sql, new String[] { "MOVE_ID" })) {
+
             stmt.setInt(1, move.getGameId());
             stmt.setInt(2, move.getMoveNumber());
             stmt.setInt(3, move.getPlayerId());
             stmt.setInt(4, move.getDiceValue());
             stmt.setInt(5, move.getPieceNumber());
-            stmt.setInt(6, move.getFromPosition());
-            stmt.setInt(7, move.getToPosition());
+
+            stmt.setString(6, String.valueOf(move.getFromPosition()));
+            stmt.setString(7, String.valueOf(move.getToPosition()));
+
             stmt.setInt(8, move.isCapturedOpponent() ? 1 : 0);
+
+            String actionType;
+
+            if (move.getFromPosition() == Piece.BASE_POSITION) {
+                actionType = "DEPLOY";
+            } else {
+                actionType = "MOVE";
+            }
+
+            stmt.setString(9, actionType);
 
             stmt.executeUpdate();
 
             try (ResultSet rs = stmt.getGeneratedKeys()) {
+
                 if (rs.next()) {
                     int generatedId = rs.getInt(1);
+
                     move.setMoveId(generatedId);
+
                     return generatedId;
                 }
-                throw new SQLException("Cannot get generated move ID.");
+
+                throw new SQLException(
+                        "Cannot get generated move ID.");
             }
         }
     }
@@ -56,8 +76,7 @@ public class MoveDAO {
 
         try (
                 Connection conn = DatabaseConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)
-        ) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, gameId);
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -75,8 +94,7 @@ public class MoveDAO {
                             rs.getInt("from_position"),
                             rs.getInt("to_position"),
                             rs.getInt("captured_opponent") == 1,
-                            createdAt
-                    ));
+                            createdAt));
                 }
             }
         }

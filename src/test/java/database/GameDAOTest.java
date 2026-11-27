@@ -1,3 +1,4 @@
+package database;
 
 import dao.GameDAO;
 import model.GameRecord;
