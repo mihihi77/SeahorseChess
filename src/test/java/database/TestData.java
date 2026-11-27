@@ -1,3 +1,4 @@
+package database;
 
 import dao.DatabaseConnection;
 import dao.PlayerDAO;

@@ -1,3 +1,4 @@
+package database;
 
 import dao.PlayerDAO;
 import model.Player;
